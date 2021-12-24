@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title></title>
+    <script src="./node_modules/jquery/dist/jquery.js"></script>
+    <script type="text/javascript">
+         
+        //记录键盘上下是li的位置
+        var index_up;
+        var index_enter;
+        var index_down;
+        $(function () {
+ 
+            $("#txt1").focus(function () {
+                //获取text的 长  宽
+                var width = $(this).width();
+                var height = $(this).height();
+                //获取text的位置
+                var y = $(this).offset().top;
+                var x = $(this).offset().left;
+                //div2 显示
+                $("#d2").css({ "display": "block", "top": y + height + 6, "left": x, "width": width });
+                //下拉第一个背景色改变
+                $("#d2 ul li").eq(0).addClass("sd")
+            });
+            //键盘事件    
+            
+            $(document).keydown(function (event) {
+                if (event.keyCode == 40) {//下               
+                     keyEvent();
+                    //相应的ul li被选中//其余的li移除背景色
+                    $("#d2 ul li").eq(index_down + 1).addClass("sd").siblings().removeClass("sd");                 
+                }
+                
+                else if (event.keyCode == 38) {//上                 
+                    keyEvent();
+                    //改变相应的li背景色
+                    $("#d2 ul li").eq(index_up-1).addClass("sd").siblings().removeClass("sd");                 
+                }
+               
+                else if (event.keyCode == 13) {//enter                
+                    $("#txt1").val($("#d2 ul li").eq(index_enter).text());
+                }
+                else {
+ 
+                }
+            });
+ 
+ 
+        });
+            
+        function keyEvent() {
+            //获取所有的li、
+            var allLi = $("#d2 ul li");
+            //浏览器类型
+            var explorer = navigator.userAgent;
+            $.each(allLi, function () {
+                //判断浏览器类型
+                //ie
+                if (explorer.indexOf("MSIE") >= 0) {
+                    if ($(this).css("background-color") == "#0094ff") {
+                        //记录下索引
+                        index_down = $(this).index();
+                        //记录上索引
+                        index_up = $(this).index();
+                        //记录engter索引
+                        index_enter = $(this).index();
+                    }
+                }
+                    //其他
+                else {
+                    if ($(this).css("background-color") == "rgb(0, 148, 255)") {
+                        //记录下索引
+                        index_down = $(this).index();
+                        //记录上索引
+                        index_up = $(this).index();
+                        //记录engter索引
+                        index_enter = $(this).index();
+                    }
+                }
+            });
+ 
+            //获取li的长度 判断是否超出了li的高度
+            var liLength = allLi.length;
+            if (index_down >= liLength - 1) {
+                index_down = -1;
+            };
+            //重新设置起始位置
+            if (index_up == 0) { index_up = allLi.length }
+        };
+    </script>
+    <style type="text/css">
+        .d {
+            display: none;
+            position: absolute;
+            z-index: 100;
+        }
+ 
+            .d ul {
+                list-style: none;
+                margin: 0px;
+                padding: 0px;
+            }
+ 
+                .d ul li {
+                    height: 30px;
+                    margin: 0px;
+                    padding: 0px;
+                }
+ 
+                    .d ul li:hover {
+                        background-color: #0094ff;
+                        color: white;
+                    }
+ 
+        .sd {
+            background-color: #0094ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="d1">
+        
+         <input type="text" id="txt1" />
+    </div>
+ 
+    <div style="" id="d2" class="d">
+        <ul>
+            <li>111111</li>
+            <li>222222</li>
+            <li>333333</li>
+            <li>444444</li>
+            <li>555555</li>
+        </ul>
+    </div>
+    
+</body>
+</html>

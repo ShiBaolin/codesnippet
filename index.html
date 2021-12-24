@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auto Code</title>
+  <link href="./main.css" rel="stylesheet"/>
+  <link href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <script src="./node_modules/ace-builds/src-noconflict/ace.js"></script>
+  <link rel="stylesheet" href="./node_modules/ace-builds/css/ace.css">
+
+  <link rel="stylesheet" href="./node_modules/vue-toast-notification/dist/theme-sugar.css">
+  <link rel="stylesheet" href="./node_modules/element-plus/dist/index.css">
+  <style>
+    [v-cloak]{
+      display: none;
+    }
+  </style>
+</head>
+<body class="text-xs">
+  <div class="container max-w-full" id="app">
+
+    <div v-show="showAddNewForm" v-cloak class="border-4 left-52 top-3 absolute z-50" style="width: 500px; height: 520px; background-color: #d4e3eb;">
+      <div class="flex flex-col text-xs">
+        <div class="h-6">
+          <span class="float-left mt-2 ml-2">
+            {{ addNewFolderObj.folder_name }}
+          </span>
+          <span class="float-right mt-2 mr-2 cursor-pointer" @click="showAddNewForm=false">
+            <i class="fas fa-times-circle"></i>
+          </span>
+        </div>
+        <div class="py-2"><input type="text" placeholder="输入片断名称" v-model="addCodeObj.title" class="p-2 w-96 outline-none">        
+        </div>
+        <div>
+          <div id="addNewEditor" style="height: 400px;">
+  
+          </div>
+        </div>
+        <div class="pt-2 text-center mt-1">
+          <span @click="saveNewCode" class="py-2 px-3 border rounded-md cursor-pointer" title="保存代码">
+          <i class="far fa-check-circle"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="flex flex-row">
+      <div class="w-52 flex-none border-r min-h-screen" style="background-color: #d4e3eb;">
+        <!-- <div class="px-2 pt-2 text-xs text-gray-400">Settings</div>
+        <ul class="p-2">
+
+          
+          <li class="p-2" id="btnCodeWindow">
+            <i class="fas fa-cog text-blue-300 mr-2"></i> code
+          </li>
+        </ul> -->
+
+        <div class="px-2 pt-2 text-xs text-gray-400">Folders</div>
+        <ul class="p-2 space-y-1">
+          <li @click="viewList(0)" :class="{'bg-gray-100':currentFolderId==0}" class="p-2 cursor-pointer rounded-md">
+            <span>
+            <i class="fas fa-folder text-blue-300 mr-2"></i> 全部文件夹
+            </span>
+            <span class="float-right" id="btnFolderSettings">
+              <i class="fas fa-plus"></i>
+            </span>
+          </li>          
+          
+          <li class="p-2 cursor-pointer hover:bg-blue-50 rounded-md" v-for="(folder, index) in folders" ::key="index" :class="{'bg-blue-50':currentFolderId==folder.id}" >
+            <span @click="viewList(folder.id)">
+              <i class="fas fa-folder text-blue-300 mr-2"></i> {{ folder.folder_name }}
+            </span>
+            <span class="float-right" @click="showNewForm(folder.id)">
+              <i class="fas fa-plus"></i>
+            </span>
+          </li>          
+          
+        </ul>
+        <div class="px-2 pt-2 text-xs text-gray-400">Tags</div>
+        <ul class="p-2">
+          <li class="p-2 bg-gray-100 rounded-md">
+            <i class="fas fa-tags text-blue-300 mr-2"></i> 全部标签 (243)
+          </li>               
+          
+          <li class="p-2">
+            <i class="fas fa-tag text-blue-300 mr-2"></i> Notes (143)
+          </li>          
+          
+          <li class="p-2">
+            <i class="fas fa-tag text-blue-300 mr-2"></i> Apple (20)
+          </li>          
+          
+          <li class="p-2">
+            <i class="fas fa-tag text-blue-300 mr-2"></i> MySQL (44)
+          </li>
+        </ul>
+        
+      </div>
+      <div class="w-72 flex-none">
+        <div class="h-11 border-b p-2">
+          <i class="fas fa-search mr-2"></i> search
+        </div>
+        <ol class="p-4 space-y-1" style="height: 495px; overflow-y: auto;">
+          <li :class="{'bg-blue-500 text-white rounded-md':code.id==currentCodeId}" :key="index" class="border-b hover:bg-blue-500" v-for="(code, index) in codes">
+            <div class="ms-2 me-auto">
+              <div @click="showCode(code.id)" class="font-semibold p-1 cursor-pointer">{{ code.title }}</div>
+              <div :class="{'text-gray-50':code.id==currentCodeId, 'text-gray-400':code.id!=currentCodeId}" class="text-xs p-1 flex flex-row">
+                <div class="flex-grow">{{ code.tags }}</div>
+                <div class="w-20 flex-none text-right">{{ code.created_at.substr(0,10) }}</div>
+              </div>
+            </div>
+          </li>
+
+
+        </ol>
+      </div>
+      <div class="flex-grow border-l" style="background-color: #f0f0f0;">
+        <div class="flex flex-row p-2">
+          <div class="flex-grow text-base font-semibold text-gray-500">
+            {{ codeObj.title }}
+          </div>
+          <div class="flex-none space-x-2">
+            <span title="" class="px-2 py-0.5 border rounded-md hover:bg-blue-300 cursor-pointer">
+            <i class="far fa-eye"></i>
+          </span>
+            <span title="" class="px-2 py-0.5 border rounded-md hover:bg-blue-300 cursor-pointer">
+            <i class="fas fa-code"></i>
+          </span>
+            <span title="复制代码" class="px-2 py-0.5 border rounded-md hover:bg-blue-300 cursor-pointer">
+              <i class="far fa-copy"></i>
+            </span>
+            <span title="提交更新" class="px-2 py-0.5 border rounded-md hover:bg-blue-300 cursor-pointer" @click="updateCode">
+              <i class="fas fa-sync"></i>
+            </span>
+          </div>
+        </div>
+        <div>
+          <ul class="flex flex-row px-2 space-x-2 text-xs text-gray-400">
+            <li class="rounded-md border border-gray-300 px-2 py-0.5">SwiftUI</li>
+            <li class="rounded-md border border-gray-300 px-2 py-0.5">IOS</li>
+            <li class="rounded-md border border-gray-300 px-2 py-0.5">MacOS</li>
+            <li class="rounded-md border border-gray-300 px-2 py-0.5">Apple</li>
+          </ul>
+        </div>
+
+        <div id="editor" class="p-2 mt-2" style="height: 430px;">
+          
+        </div>
+        <div class="space-x-2 p-2 text-center text-xs text-gray-400">
+          代码最后更新于: {{ codeObj.updated_at }} <i class="far fa-times-circle cursor-pointer ml-2" @click="deleteCode(codeObj)" title="删除此代码"></i>
+        </div>
+
+      </div>
+
+
+    </div>
+
+  </div>
+
+  <script src="./render.js"></script>
+</body>
+</html>

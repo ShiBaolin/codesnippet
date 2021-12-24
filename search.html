@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>search</title>
+  <link href="./main.css" rel="stylesheet"/>
+  <link href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="./node_modules/element-plus/dist/index.css">
+  <style>
+    body {
+      overflow-x: hidden;
+      overflow-y: hidden;
+    }
+
+    .active {
+      background-color: #3b82f6;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="container border-4 h-10">
+    <input type="text" v-model="keywords" id="txtSearch" class="w-full h-full px-2 outline-none">
+  </div>
+
+  <el-scrollbar ref="scrollbar" height="430px" class="bg-white border">
+    <ul>
+      <li v-for="(item, index) in items" :key="index" class="p-2 border-b border-dashed hover:bg-blue-400 hover:text-gray-100 flex flex-col" :class="{active:current==index}">
+        <div class="font-semibold text-sm">
+          {{ index+1 }}.{{ item.title }}
+        </div>
+        <div class="text-gray-300 mt-2 text-xs">
+          <i class="fas fa-clock mr-2"></i> {{ item.created_at }}
+        </div>
+      </li>
+    </ul>
+  </del-scrollbar>
+
+
+</div>
+
+<script src="./search.js"></script>
+</body>
+</html>
