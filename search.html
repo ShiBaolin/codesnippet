@@ -8,6 +8,8 @@
   <link href="./main.css" rel="stylesheet"/>
   <link href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet"/>
   <link rel="stylesheet" href="./node_modules/element-plus/dist/index.css">
+  <script src="./node_modules/ace-builds/src-noconflict/ace.js"></script>
+  <link rel="stylesheet" href="./node_modules/ace-builds/css/ace.css">
   <style>
     body {
       overflow-x: hidden;
@@ -18,26 +20,37 @@
       background-color: #3b82f6;
       color: #fff;
     }
+    [v-cloak] {
+      display: none;
+    }
   </style>
 </head>
 <body>
 <div id="app">
-  <div class="container border-4 h-10">
+  <div class="container border-4 h-10" style="width: 400px;">
     <input type="text" v-model="keywords" id="txtSearch" class="w-full h-full px-2 outline-none">
   </div>
 
-  <el-scrollbar ref="scrollbar" height="430px" class="bg-white border">
-    <ul>
-      <li v-for="(item, index) in items" :key="index" class="p-2 border-b border-dashed hover:bg-blue-400 hover:text-gray-100 flex flex-col" :class="{active:current==index}">
-        <div class="font-semibold text-sm">
-          {{ index+1 }}.{{ item.title }}
-        </div>
-        <div class="text-gray-300 mt-2 text-xs">
-          <i class="fas fa-clock mr-2"></i> {{ item.created_at }}
-        </div>
-      </li>
-    </ul>
-  </del-scrollbar>
+  <div class="flex flex-row">
+    <div class="flex-none">
+    <el-scrollbar v-cloak ref="scrollbar" height="430px" class="bg-white border">
+      <ul style="width: 398px;">
+        <li v-for="(item, index) in items" :key="index" class="p-2 border-b border-dashed hover:bg-blue-400 hover:text-gray-100 flex flex-col" :class="{active:current==index}">
+          <div class="font-semibold text-sm">
+            {{ index+1 }}.{{ item.title }}
+          </div>
+          <div class="text-gray-300 mt-2 text-xs">
+            <i class="fas fa-clock mr-2"></i> {{ item.created_at }}
+          </div>
+        </li>
+      </ul>
+    </del-scrollbar>
+    </div>
+    <div class="flex-grow bg-white rounded-md p-1 border-4">
+      <div id="editor" style="height: 430px;">
+      </div>
+    </div>
+  </div>
 
 
 </div>

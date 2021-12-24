@@ -15,7 +15,8 @@ const App = {
     return {
       items: [],
       keywords:'',
-      current: 0
+      current: 0,
+      viewCode:''
     }
   },
   components: {
@@ -29,8 +30,16 @@ const App = {
       db.all("select * from code where title like '%"+that.keywords+"%' order by id desc", {}, (err, rows)=>{
         if (err) throw err;
         that.items = rows;
+        if (rows && rows.length>0)
+        {
+          that.editor.setValue(rows[0].content, 1);
+        }else{
+          that.editor.setValue('',);
+        }
       });
       that.current = 0;
+
+      
     },
     selectUp(e){
       if (this.current>0)
@@ -71,18 +80,29 @@ const App = {
       this.search();
     },
     current(newCurrent, oldCurrent) {
+      // this.viewCode = this.items[newCurrent].content;
+      this.editor.setValue(this.items[newCurrent].content, 1);
       this.$refs.scrollbar.setScrollTop(98*(newCurrent-6));
     }
     
   },
   mounted() {
     let that = this;
+
+    this.editor = ace.edit("editor");
+    this.editor.setTheme("ace/theme/katzenmilch");
+    this.editor.session.setMode("ace/mode/java"); 
+
     db.all("select * from folders", (err, rows)=>{
       that.folders = rows;
     });
 
     db.all("select * from code order by id desc limit 20", (err, rows)=>{
       that.items = rows;
+      if (rows&&rows.length>0)
+      {
+        that.editor.setValue(rows[0].content, 1);
+      }
     });
 
     document.onkeydown = function(el) {

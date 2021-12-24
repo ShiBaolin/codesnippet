@@ -13,6 +13,8 @@
 
   <link rel="stylesheet" href="./node_modules/vue-toast-notification/dist/theme-sugar.css">
   <link rel="stylesheet" href="./node_modules/element-plus/dist/index.css">
+
+ 
   <style>
     [v-cloak]{
       display: none;
@@ -32,7 +34,21 @@
             <i class="fas fa-times-circle"></i>
           </span>
         </div>
-        <div class="py-2"><input type="text" placeholder="输入片断名称" v-model="addCodeObj.title" class="p-2 w-96 outline-none">        
+        <div class="py-2 flex flex-row space-x-2">
+          <div class="flex-grow">
+            <el-input v-model="addCodeObj.title" placeholder="输入片断名称" />
+          </div>
+          <div class="flex-none w-40">
+            <el-select v-model="langvalue" filterable  placeholder="选择语言">
+              <el-option
+                v-for="item in this.options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              >
+              </el-option>
+            </el-select>
+          </div>
         </div>
         <div>
           <div id="addNewEditor" style="height: 400px;">
@@ -50,36 +66,71 @@
 
     <div class="flex flex-row">
       <div class="w-52 flex-none border-r min-h-screen" style="background-color: #d4e3eb;">
-        <!-- <div class="px-2 pt-2 text-xs text-gray-400">Settings</div>
-        <ul class="p-2">
 
-          
-          <li class="p-2" id="btnCodeWindow">
-            <i class="fas fa-cog text-blue-300 mr-2"></i> code
-          </li>
-        </ul> -->
 
         <div class="px-2 pt-2 text-xs text-gray-400">Folders</div>
-        <ul class="p-2 space-y-1">
+
+        <el-dialog v-model="dialogFormVisible" title="新增文件夹" center>
+            <span>
+              <el-input v-model="newFolderName" placeholder="文件夹名称" />
+            </span>
+            <div class="dialog-footer text-center mt-2">              
+              <el-button type="primary" @click="saveNewFolder">保存</el-button>
+            </div>
+        </el-dialog>
+
+        <el-dialog v-model="modifyFolderFormVisible" title="修改文件夹" center>
+          <span>
+            <el-input v-model="folderName" placeholder="文件夹名称" />
+          </span>
+          <div class="dialog-footer text-center mt-2">              
+            <el-button type="primary" @click="updateFolder">保存</el-button>
+          </div>
+      </el-dialog>
+
+        <ul class="p-2 space-y-1" id="folder_list">
           <li @click="viewList(0)" :class="{'bg-gray-100':currentFolderId==0}" class="p-2 cursor-pointer rounded-md">
             <span>
             <i class="fas fa-folder text-blue-300 mr-2"></i> 全部文件夹
             </span>
-            <span class="float-right" id="btnFolderSettings">
+            <!-- <span class="float-right" id="btnFolderSettings"> -->
+            <span class="float-right" @click="dialogFormVisible = true">
               <i class="fas fa-plus"></i>
             </span>
           </li>          
-          
-          <li class="p-2 cursor-pointer hover:bg-blue-50 rounded-md" v-for="(folder, index) in folders" ::key="index" :class="{'bg-blue-50':currentFolderId==folder.id}" >
-            <span @click="viewList(folder.id)">
-              <i class="fas fa-folder text-blue-300 mr-2"></i> {{ folder.folder_name }}
-            </span>
-            <span class="float-right" @click="showNewForm(folder.id)">
-              <i class="fas fa-plus"></i>
-            </span>
-          </li>          
+          <draggable v-model="folders" @end="checkMove" item-key="px">
+              <li class="p-2 cursor-pointer hover:bg-blue-50 rounded-md" v-for="(folder, index) in folders" :key="index" :class="{'bg-blue-50':currentFolderId==folder.id}" >
+                <span @click="viewList(folder.id)">
+                  <i class="fas fa-folder text-blue-300 mr-2"></i> {{ folder.folder_name }}
+                </span>
+
+                <span class="float-right" @click="showNewForm(folder.id)">
+                  <i class="fas fa-plus"></i>
+                </span>
+
+                <span class="float-right mr-2">
+
+                <el-dropdown>
+                  <span class="el-dropdown-link">
+                    <i class="fas fa-cog"></i>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item @click="openUpdateFolder(folder.id)">
+                        修改
+                      </el-dropdown-item>
+                      <el-dropdown-item @click="deleteFolder(folder.id)" divided>删除</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+
+                </span>
+
+              </li>
+          </draggable>          
           
         </ul>
+
         <div class="px-2 pt-2 text-xs text-gray-400">Tags</div>
         <ul class="p-2">
           <li class="p-2 bg-gray-100 rounded-md">
@@ -87,12 +138,12 @@
           </li>               
           
           <li class="p-2">
-            <i class="fas fa-tag text-blue-300 mr-2"></i> Notes (143)
+            <i class="fas fa-tag text-blue-300 mr-2 text-xs"></i> Notes (143)
           </li>          
           
           <li class="p-2">
             <i class="fas fa-tag text-blue-300 mr-2"></i> Apple (20)
-          </li>          
+          </li>
           
           <li class="p-2">
             <i class="fas fa-tag text-blue-300 mr-2"></i> MySQL (44)
@@ -101,29 +152,47 @@
         
       </div>
       <div class="w-72 flex-none">
-        <div class="h-11 border-b p-2">
-          <i class="fas fa-search mr-2"></i> search
+        <div class="h-11 border-b p-2 flex flex-row">
+          <i class="fas fa-search mt-2 flex-none"></i>
+          <div class="flex-grow">
+              <input type="text" v-model="searchKeys" class="p-2 outline-none text-gray-400" placeholder="search" @keydown.enter="search">
+          </div>
         </div>
-        <ol class="p-4 space-y-1" style="height: 495px; overflow-y: auto;">
-          <li :class="{'bg-blue-500 text-white rounded-md':code.id==currentCodeId}" :key="index" class="border-b hover:bg-blue-500" v-for="(code, index) in codes">
-            <div class="ms-2 me-auto">
-              <div @click="showCode(code.id)" class="font-semibold p-1 cursor-pointer">{{ code.title }}</div>
-              <div :class="{'text-gray-50':code.id==currentCodeId, 'text-gray-400':code.id!=currentCodeId}" class="text-xs p-1 flex flex-row">
-                <div class="flex-grow">{{ code.tags }}</div>
-                <div class="w-20 flex-none text-right">{{ code.created_at.substr(0,10) }}</div>
+        <el-scrollbar v-cloak ref="scrollbar" style="height: 495px;">
+          <ol class="p-4 space-y-1">
+            <li :class="{'bg-blue-500 text-white rounded-md':code.id==currentCodeId}" :key="index" class="border-b hover:bg-blue-500" v-for="(code, index) in codes">
+              <div class="ms-2 me-auto">
+                <div @click="showCode(code.id)" class="font-semibold p-1 cursor-pointer">{{ code.title }}</div>
+                <div :class="{'text-gray-50':code.id==currentCodeId, 'text-gray-400':code.id!=currentCodeId}" class="text-xs p-1 flex flex-row">
+                  <div class="flex-grow">{{ formatLang(code.lang) }}</div>
+                  <div class="w-20 flex-none text-right">{{ code.created_at.substr(0,10) }}</div>
+                </div>
               </div>
-            </div>
-          </li>
-
-
-        </ol>
+            </li>
+          </ol>
+        </el-scrollbar>
       </div>
       <div class="flex-grow border-l" style="background-color: #f0f0f0;">
-        <div class="flex flex-row p-2">
+        <div class="flex flex-row p-2 space-x-2">
           <div class="flex-grow text-base font-semibold text-gray-500">
-            {{ codeObj.title }}
+            <el-input v-model="codeObj.title" placeholder="片断">
+              <template #prefix>
+                <i class="fas fa-ellipsis-h mt-3"></i>
+              </template>
+            </el-input>
           </div>
-          <div class="flex-none space-x-2">
+          <div class="flex-none w-20">
+            <el-select v-model="code_lang" filterable  placeholder="语言">
+              <el-option
+                v-for="item in this.options"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              >
+              </el-option>
+            </el-select>
+          </div>
+          <div class="flex-none pt-3 space-x-2">
             <span title="" class="px-2 py-0.5 border rounded-md hover:bg-blue-300 cursor-pointer">
             <i class="far fa-eye"></i>
           </span>
@@ -138,7 +207,7 @@
             </span>
           </div>
         </div>
-        <div>
+        <div style="display: none;">
           <ul class="flex flex-row px-2 space-x-2 text-xs text-gray-400">
             <li class="rounded-md border border-gray-300 px-2 py-0.5">SwiftUI</li>
             <li class="rounded-md border border-gray-300 px-2 py-0.5">IOS</li>

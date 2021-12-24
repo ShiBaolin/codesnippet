@@ -1,7 +1,4 @@
 // main.js
-
-
-
 // 控制应用生命周期和创建原生浏览器窗口的模组
 const { 
   app, 
@@ -9,24 +6,22 @@ const {
   Menu, 
   MenuItem , 
   Tray, 
-  globalShortcut, 
-  clipboard, 
+  globalShortcut,
   screen, 
-  contextBridge,
   ipcMain
  } = require('electron')
+
 const path = require('path')
 
 function createWindow () {
   // 创建浏览器窗口
   const mainWindow = new BrowserWindow({
-    width: 1000,
+    width: 1200,
     height: 600,
     webPreferences: {
       nodeIntegration:true,
       contextIsolation: false,
-      enableRemoteModule: true,
-      preload: path.join(__dirname, 'preload.js')
+      enableRemoteModule: true
     }
   })
 
@@ -65,7 +60,7 @@ function openSearchWindow()
 
     searchWin = new BrowserWindow({ 
       frame: true , 
-      width:500, 
+      width:900, 
       // height:40,
       height:560,
       menuBarVisible: false,
@@ -149,7 +144,7 @@ ipcMain.handle('open-folder-settings', ()=>{
 
 ipcMain.handle('quit-search', ()=>{
   searchWin.blur()
-  searchWin.close();
+  searchWin.hide();
 });
 
 ipcMain.handle('paste', ()=>{
@@ -166,20 +161,13 @@ app.whenReady().then(() => {
     { label: 'Item1', type: 'radio' },
     { label: 'Item2', type: 'radio' },
     { label: 'Item3', type: 'radio', checked: true },
-    { label: 'Item4', type: 'radio' }
+    { label: '退出', type:'normal' }
   ])
-  tray.setToolTip('This is my application.')
+  tray.setToolTip('code snippet')
   tray.setContextMenu(contextMenu)
 
-  globalShortcut.register('Control+Alt+x', () => {
-    console.log('Electron loves global shortcuts!')
-    const size = screen.getPrimaryDisplay().size
-    const message = `当前屏幕是: ${size.width}px x ${size.height}px`
-    console.log(message);
-    
+  globalShortcut.register('Control+Alt+x', () => {    
     openSearchWindow();
-    // clipboard.writeText('一段示例内容!')
-    // clipboard.readText()
   })
 
   createWindow()

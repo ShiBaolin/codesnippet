@@ -29,8 +29,11 @@
     "lodash": "^4.17.21",
     "moment": "^2.29.1",
     "mousetrap": "^1.6.5",
+    "sortablejs": "^1.14.0",
     "sqlite3": "^5.0.2",
     "vue": "^3.2.26",
-    "vue-toast-notification": "^2.0.1"
+    "vue-draggable-next": "^2.1.1",
+    "vue-toast-notification": "^2.0.1",
+    "vuedraggable": "^4.1.0"
   }
 }
