@@ -135,8 +135,6 @@ const App = {
 
       db.get("select * from folders where id=$id", {$id:id}, (err,row)=>{
         if (err) throw err;
-        console.log(id)
-        console.log(row)
         this.addNewFolderObj = row;
       });
 
@@ -154,6 +152,7 @@ const App = {
         $lang: this.langvalue
       };
       val.$content = this.newEditor.getValue();
+      
       let that = this;
       db.run(sql, val, err=>{
         if(err) throw err;
@@ -167,8 +166,10 @@ const App = {
 
         that.showAddNewForm = false;
         that.addCodeObj = {};
+        
         that.viewList(val.$folder);
       });
+      this.newEditor.setValue('');
     },
 
     updateCode(){

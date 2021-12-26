@@ -13,11 +13,18 @@ const {
 
 const path = require('path')
 
+let mainWindow = null
+
 function createWindow () {
   // 创建浏览器窗口
-  const mainWindow = new BrowserWindow({
+  mainWindow  = new BrowserWindow({
+    title: "代码片断管理",
     width: 1200,
     height: 600,
+    menuBarVisible: false,
+    autoHideMenuBar: true,
+    resizable: false,
+    icon:"php.ico",
     webPreferences: {
       nodeIntegration:true,
       contextIsolation: false,
@@ -27,9 +34,17 @@ function createWindow () {
 
   // 加载 index.html
   mainWindow.loadFile('index.html');
+  mainWindow.setMenu(null);
+
+
+  mainWindow.on('close', (event)=>{
+
+    mainWindow.hide();
+    event.preventDefault();
+  });
 
   // 打开开发工具
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 }
 
 // const menu = new Menu()
@@ -52,84 +67,46 @@ let tray = null
 let searchWin = null
 let spawn = require('child_process').spawn;
 
-function openSearchWindow()
+
+function createSearchWindow()
 {
   const modalPath = path.join('file://', __dirname, './search.html')
+  searchWin = new BrowserWindow({ 
+    frame: true , 
+    width:900, 
+    // height:40,
+    height:560,
+    menuBarVisible: false,
+    frame: false,
+    transparent: true,
+    resizable: false,
+    skipTaskbar: true,
+    
+    // x:1000, 
+    // y:0,
+    webPreferences: {
+      nodeIntegration:true,
+      contextIsolation: false,
+      enableRemoteModule: true
+      // preload: path.join(__dirname, 'search.js')
+    }
+  });
+  
+  searchWin.on('close', () => { searchWin = null })
+  searchWin.loadURL(modalPath);
+}
+
+function openSearchWindow()
+{
   if (searchWin==null||searchWin.isDestroyed())
   {
-
-    searchWin = new BrowserWindow({ 
-      frame: true , 
-      width:900, 
-      // height:40,
-      height:560,
-      menuBarVisible: false,
-      frame: false,
-      transparent: true,
-      resizable: false,
-      
-      // x:1000, 
-      // y:0,
-      webPreferences: {
-        nodeIntegration:true,
-        contextIsolation: false,
-        enableRemoteModule: true
-        // preload: path.join(__dirname, 'search.js')
-      }
-    })
-    
-    searchWin.on('close', () => { searchWin = null })
-    searchWin.loadURL(modalPath);
-    // searchWin.webContents.openDevTools()
+    createSearchWindow();
   }
   searchWin.show()
 }
 
-let folderWindow = null;
 
-//文件夹管理页面
-function createFolderWindow(){
-  const folderPagePath = path.join('file://', __dirname, './folders.html')
-  folderWindow = new BrowserWindow({ 
-    frame: true , 
-    width:500, 
-    height:500,
-    menu: false,
-    show: false,
-    webPreferences: {
-      nodeIntegration:true,
-      contextIsolation: false,
-      enableRemoteModule: true
-    }
-  });
-    
-  folderWindow.loadURL(folderPagePath)
-  folderWindow.webContents.openDevTools()
-}
 
-//tags管理页面
-
-//代码编写窗口
-let codeWindow = null;
-
-function createCodeWindow(){
-  const codePagePath = path.join('file://', __dirname, './code.html')
-  codeWindow = new BrowserWindow({ 
-    frame: true , 
-    width:800, 
-    height:500,
-    menu: false,
-    show: false,
-    webPreferences: {
-      nodeIntegration:true,
-      contextIsolation: false,
-      enableRemoteModule: true
-    }
-  });
-    
-  codeWindow.loadURL(codePagePath)
-  codeWindow.webContents.openDevTools()
-}
 
 ipcMain.handle('open-code-window', ()=>{
   createCodeWindow();
@@ -157,11 +134,16 @@ ipcMain.handle('paste', ()=>{
 app.whenReady().then(() => {
   
   tray = new Tray('./php.ico')
+  tray.on('click', ()=>{
+    mainWindow.show();
+  });
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Item1', type: 'radio' },
-    { label: 'Item2', type: 'radio' },
-    { label: 'Item3', type: 'radio', checked: true },
-    { label: '退出', type:'normal' }
+    { label: '退出', type:'normal', click:()=>{
+      console.log('quite');
+      mainWindow.destroy();
+      searchWin.destroy();
+      app.quit();      
+    }}
   ])
   tray.setToolTip('code snippet')
   tray.setContextMenu(contextMenu)
@@ -170,7 +152,10 @@ app.whenReady().then(() => {
     openSearchWindow();
   })
 
-  createWindow()
+  createWindow();
+  createSearchWindow();
+  searchWin.hide();
+
 });
 
 
@@ -179,7 +164,9 @@ app.on('will-quit', ()=>{
 
   // 注销所有快捷键
   globalShortcut.unregisterAll()
-  searchWin.destroy();
+  if (searchWin!=null && !searchWin.isDestroyed){
+    searchWin.destroy();
+  }
 })
 
 // 除了 macOS 外，当所有窗口都被关闭的时候退出程序。 因此，通常对程序和它们在

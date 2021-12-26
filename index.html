@@ -5,7 +5,7 @@
 
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Auto Code</title>
+  <title>代码片断管理</title>
   <link href="./main.css" rel="stylesheet"/>
   <link href="./node_modules/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet"/>
   <script src="./node_modules/ace-builds/src-noconflict/ace.js"></script>
@@ -70,7 +70,7 @@
 
         <div class="px-2 pt-2 text-xs text-gray-400">Folders</div>
 
-        <el-dialog v-model="dialogFormVisible" title="新增文件夹" center>
+        <el-dialog v-cloak v-model="dialogFormVisible" title="新增文件夹" center>
             <span>
               <el-input v-model="newFolderName" placeholder="文件夹名称" />
             </span>
@@ -79,7 +79,7 @@
             </div>
         </el-dialog>
 
-        <el-dialog v-model="modifyFolderFormVisible" title="修改文件夹" center>
+        <el-dialog v-cloak v-model="modifyFolderFormVisible" title="修改文件夹" center>
           <span>
             <el-input v-model="folderName" placeholder="文件夹名称" />
           </span>
@@ -88,7 +88,7 @@
           </div>
       </el-dialog>
 
-        <ul class="p-2 space-y-1" id="folder_list">
+        <ul v-cloak class="p-2 space-y-1" id="folder_list">
           <li @click="viewList(0)" :class="{'bg-gray-100':currentFolderId==0}" class="p-2 cursor-pointer rounded-md">
             <span>
             <i class="fas fa-folder text-blue-300 mr-2"></i> 全部文件夹
@@ -131,7 +131,7 @@
           
         </ul>
 
-        <div class="px-2 pt-2 text-xs text-gray-400">Tags</div>
+        <!-- <div class="px-2 pt-2 text-xs text-gray-400">Tags</div>
         <ul class="p-2">
           <li class="p-2 bg-gray-100 rounded-md">
             <i class="fas fa-tags text-blue-300 mr-2"></i> 全部标签 (243)
@@ -148,21 +148,21 @@
           <li class="p-2">
             <i class="fas fa-tag text-blue-300 mr-2"></i> MySQL (44)
           </li>
-        </ul>
+        </ul> -->
         
       </div>
       <div class="w-72 flex-none">
         <div class="h-11 border-b p-2 flex flex-row">
           <i class="fas fa-search mt-2 flex-none"></i>
           <div class="flex-grow">
-              <input type="text" v-model="searchKeys" class="p-2 outline-none text-gray-400" placeholder="search" @keydown.enter="search">
+              <input type="text" v-model="searchKeys" class="p-2 w-full outline-none text-gray-400" placeholder="search" @keydown.enter="search">
           </div>
         </div>
-        <el-scrollbar v-cloak ref="scrollbar" style="height: 495px;">
+        <el-scrollbar v-cloak ref="scrollbar" style="height: 505px;">
           <ol class="p-4 space-y-1">
             <li :class="{'bg-blue-500 text-white rounded-md':code.id==currentCodeId}" :key="index" class="border-b hover:bg-blue-500" v-for="(code, index) in codes">
               <div class="ms-2 me-auto">
-                <div @click="showCode(code.id)" class="font-semibold p-1 cursor-pointer">{{ code.title }}</div>
+                <div @click="showCode(code.id)" class="font-semibold p-1 cursor-pointer">{{index+1}}.{{ code.title }}</div>
                 <div :class="{'text-gray-50':code.id==currentCodeId, 'text-gray-400':code.id!=currentCodeId}" class="text-xs p-1 flex flex-row">
                   <div class="flex-grow">{{ formatLang(code.lang) }}</div>
                   <div class="w-20 flex-none text-right">{{ code.created_at.substr(0,10) }}</div>
@@ -216,11 +216,11 @@
           </ul>
         </div>
 
-        <div id="editor" class="p-2 mt-2" style="height: 430px;">
+        <div id="editor" class="p-2 mt-2" style="height: 470px;">
           
         </div>
-        <div class="space-x-2 p-2 text-center text-xs text-gray-400">
-          代码最后更新于: {{ codeObj.updated_at }} <i class="far fa-times-circle cursor-pointer ml-2" @click="deleteCode(codeObj)" title="删除此代码"></i>
+        <div v-cloak class="space-x-2 p-2 text-center text-xs text-gray-400">
+          <span v-if="codeObj.updated_at">代码最后更新于: {{ codeObj.updated_at }}</span> <i class="far fa-times-circle cursor-pointer ml-2" @click="deleteCode(codeObj)" title="删除此代码"></i>
         </div>
 
       </div>

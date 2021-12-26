@@ -16,18 +16,31 @@ const App = {
       items: [],
       keywords:'',
       current: 0,
-      viewCode:''
+      viewCode:'',
+      searchMode:'t'
     }
   },
   components: {
     ElButton,
     ElScrollbar
   },
-  methods: {  
+  methods: {
+    findCode(){
+      if (this.searchMode=='c'){
+        this.editor.find(this.keywords.substr(1));
+      }
+    },  
     search(){
       let that = this;
-
-      db.all("select * from code where title like '%"+that.keywords+"%' order by id desc", {}, (err, rows)=>{
+      if (this.keywords.startsWith(':'))
+      {
+        this.searchMode = 'c';
+        sql = "select * from code where content like '%"+this.keywords.substr(1)+"%' order by id desc"
+      }else{
+        this.searchMode = 't'
+        sql = "select * from code where title like '%"+this.keywords+"%' order by id desc"
+      }
+      db.all(sql, {}, (err, rows)=>{
         if (err) throw err;
         that.items = rows;
         if (rows && rows.length>0)
@@ -35,11 +48,10 @@ const App = {
           that.editor.setValue(rows[0].content, 1);
         }else{
           that.editor.setValue('',);
-        }
+        }        
+        this.findCode();      
       });
-      that.current = 0;
-
-      
+      this.current = 0;
     },
     selectUp(e){
       if (this.current>0)
@@ -83,6 +95,7 @@ const App = {
       // this.viewCode = this.items[newCurrent].content;
       this.editor.setValue(this.items[newCurrent].content, 1);
       this.$refs.scrollbar.setScrollTop(98*(newCurrent-6));
+      this.findCode();
     }
     
   },
