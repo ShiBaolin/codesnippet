@@ -12,7 +12,6 @@ const {
  } = require('electron')
 
 const path = require('path')
-const { debug, parsteScript } = require('./conf');
 
 let mainWindow = null
 
@@ -25,7 +24,7 @@ function createWindow () {
     menuBarVisible: false,
     autoHideMenuBar: true,
     resizable: false,
-    icon:path.join(__dirname, 'php.ico'),
+    icon:"php.ico",
     webPreferences: {
       nodeIntegration:true,
       contextIsolation: false,
@@ -34,8 +33,7 @@ function createWindow () {
   })
 
   // 加载 index.html
-  // mainWindow.loadFile(path.join(__dirname, './index.html'));
-  mainWindow.loadURL(`file://${app.getAppPath()}/index.html`);
+  mainWindow.loadFile('index.html');
   mainWindow.setMenu(null);
 
 
@@ -46,29 +44,7 @@ function createWindow () {
   });
 
   // 打开开发工具
-  if (debug){
-      mainWindow.webContents.openDevTools();
-  }
-}
-
-
-//单例模式，即只能启动一个实例
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
-} else {
-  app.on('second-instance', (event, commandLine, workingDirectory) => {
-    // 当运行第二个实例时,将会聚焦到myWindow这个窗口
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) { 
-        mainWindow.restore();
-      }
-      if (!mainWindow.isVisible()){
-        mainWindow.show();
-      }
-      mainWindow.focus();
-    }
-  })
+  // mainWindow.webContents.openDevTools();
 }
 
 // const menu = new Menu()
@@ -94,7 +70,7 @@ let spawn = require('child_process').spawn;
 
 function createSearchWindow()
 {
-  const modalPath = path.join(`file://${app.getAppPath()}/search.html`);
+  const modalPath = path.join('file://', __dirname, './search.html')
   searchWin = new BrowserWindow({ 
     frame: true , 
     width:900, 
@@ -104,8 +80,7 @@ function createSearchWindow()
     frame: false,
     transparent: true,
     resizable: false,
-    show:false,
-    // skipTaskbar: true,
+    skipTaskbar: true,
     
     // x:1000, 
     // y:0,
@@ -152,12 +127,13 @@ ipcMain.handle('quit-search', ()=>{
 ipcMain.handle('paste', ()=>{
   searchWin.blur()
   searchWin.hide();
-  spawn("powershell.exe",[parsteScript]);
+  let parsteFile = path.join(__dirname, './parste.ps1')
+  spawn("powershell.exe",[parsteFile]);
 });
 
 app.whenReady().then(() => {
   
-  tray = new Tray(path.join(__dirname, 'php.ico'))
+  tray = new Tray('./php.ico')
   tray.on('click', ()=>{
     mainWindow.show();
   });
@@ -172,14 +148,13 @@ app.whenReady().then(() => {
   tray.setToolTip('code snippet')
   tray.setContextMenu(contextMenu)
 
-  createWindow();
-  createSearchWindow();
-  
   globalShortcut.register('Control+Alt+x', () => {    
     openSearchWindow();
   })
 
-  // searchWin.hide();
+  createWindow();
+  createSearchWindow();
+  searchWin.hide();
 
 });
 

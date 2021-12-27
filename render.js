@@ -1,8 +1,3 @@
-let $ = require('jquery');
-const { ipcRenderer } = require('electron');
-
-const path = require('path')
-const sqlite3 = require('sqlite3').verbose();
 const Vue = require('vue');
 
 const {VueDraggableNext} = require('vue-draggable-next');
@@ -24,14 +19,10 @@ const {
 // const VueToast = require('vue-toast-notification');
 
 const moment = require('moment');
-const { title } = require('process');
 
+const { sportLanguage } = require('./conf');
 
-
-
-let db = new sqlite3.Database(path.join(__dirname, 'db.db'), err=>{
-  if (err) throw err;
-});
+const { db } = require('./db');
 
 const App = {
   data() {
@@ -95,7 +86,7 @@ const App = {
     showCode(id){
       let that = this;
       db.get("select * from code where id=$id", {$id:id}, (err, row)=>{
-        if (err) throw err;
+        that.throwErr(err, 'show code');
         that.codeObj = row;
         that.currentCodeId = row.id;
         this.code_lang = row.lang;
@@ -106,11 +97,17 @@ const App = {
         that.editor.session.setMode(row.lang);
       });
     },
-
+    throwErr(err, channel){
+      if (err){
+        console.log('=========',channel,'============');
+        console.log(err)
+        throw err;
+      }
+    },
     viewList(folderId){
       if (folderId==0){
         db.all("select * from code order by id desc", {}, (err, rows)=>{
-          if (err) throw err;
+          this.throwErr(err, 'view list');
           this.currentFolderId = folderId;
           this.codes = rows;
           if (rows.length>0) {
@@ -324,13 +321,15 @@ const App = {
   mounted() {
     let that = this;
     db.all("select * from folders order by px,id", (err, rows)=>{
+      if (err) {
+        console.log('init err');
+        console.log(err);
+        throw err;
+      }
       that.folders = rows;
     });
 
-    db.all("select * from code order by id desc limit 30", (err, rows)=>{
-      that.codes = rows;
-      that.showCode(rows[0].id);
-    });
+
 
     this.editor = ace.edit("editor");
     this.editor.setTheme("ace/theme/katzenmilch");
@@ -340,7 +339,16 @@ const App = {
     this.newEditor.setTheme("ace/theme/katzenmilch");
     this.newEditor.session.setMode("ace/mode/java");
 
-    this.options = require(path.resolve('./langsport.json'));
+    this.options = require(sportLanguage);
+
+    db.all("select * from code order by id desc limit 50", (err, rows)=>{
+      that.throwErr(err, 'mounted show code');
+      that.codes = rows;
+      if (rows.length>0)
+      {
+        that.showCode(rows[0].id);
+      }
+    });
 
 
   }
@@ -351,16 +359,16 @@ Vue.createApp(App).use(ElementPlus).mount('#app');
 
 
 
-$(()=>{
+// $(()=>{
 
 
 
-  $('#btnFolderSettings').click(()=>{
-    ipcRenderer.invoke('open-folder-settings');
-  });
+//   $('#btnFolderSettings').click(()=>{
+//     ipcRenderer.invoke('open-folder-settings');
+//   });
 
-  $('#btnCodeWindow').click(()=>{
-    console.log('open code window');
-    ipcRenderer.invoke('open-code-window');
-  });
-});
+//   $('#btnCodeWindow').click(()=>{
+//     console.log('open code window');
+//     ipcRenderer.invoke('open-code-window');
+//   });
+// });

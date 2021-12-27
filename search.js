@@ -1,14 +1,11 @@
 
 const { ipcRenderer, clipboard } = require('electron')
 const Vue = require('vue');
-const path = require('path');
-const sqlite3 = require('sqlite3').verbose();
 
 const {ElementPlus, ElButton, ElScrollbar, ElMessageBox, ElMessage} = require('element-plus');
 
-let db = new sqlite3.Database(path.join(__dirname, 'db.db'), err=>{
-  if (err) throw err;
-});
+
+const { db } = require('./db');
 
 const App = {
   data() {
